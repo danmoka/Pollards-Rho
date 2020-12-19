@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace PollardsRho
@@ -10,7 +9,6 @@ namespace PollardsRho
         private readonly BigInteger _b;
         private readonly BigInteger _fieldOrder;
         private readonly BigInteger _subgroupOrder;
-        public Point BasePoint { get; private set; }
 
         public EllipticCurve(
             BigInteger a,
@@ -23,7 +21,10 @@ namespace PollardsRho
             _b = b;
             _fieldOrder = fieldOrder;
             _subgroupOrder = subgroupOrder;
+
             BasePoint = basePoint;
+            FieldOrder = fieldOrder;
+            SubgroupOrder = subgroupOrder;
 
             if (BigInteger.ModPow(2, _fieldOrder - 1, _fieldOrder) != 1)
                 throw new InvalidOperationException($"Incorrect field order {_fieldOrder}!");
@@ -37,6 +38,10 @@ namespace PollardsRho
             if (Multiply(_subgroupOrder, BasePoint) != null)
                 throw new InvalidOperationException($"Incorrect {_subgroupOrder} or {BasePoint}!");
         }
+
+        public Point BasePoint { get; private set; }
+        public BigInteger FieldOrder { get; private set; }
+        public BigInteger SubgroupOrder { get; private set; }
 
         public Point Add(Point p1, Point p2)
         {
@@ -59,9 +64,9 @@ namespace PollardsRho
             BigInteger s;
 
             if (p1.X == p2.X)
-                s = ((3 * ModPow(p1.X, 2) + _a) * Helper.ModInverse(2 * p1.Y, _fieldOrder)) % _fieldOrder;
+                s = (3 * ModPow(p1.X, 2) + _a) * Helper.ModInverse(2 * p1.Y, _fieldOrder) % _fieldOrder;
             else
-                s = ((p1.Y - p2.Y) * Helper.ModInverse(p1.X - p2.X, _fieldOrder)) % _fieldOrder;
+                s = (p1.Y - p2.Y) * Helper.ModInverse(p1.X - p2.X, _fieldOrder) % _fieldOrder;
 
             var x = (ModPow(s, 2) - p1.X - p2.X) % _fieldOrder;
 
@@ -70,7 +75,7 @@ namespace PollardsRho
 
             var y = (p1.Y + s * (x - p1.X)) % _fieldOrder;
 
-            y = -y < 0 ? 
+            y = -y < 0 ?
                 -y + _fieldOrder :
                 -y;
 
@@ -93,8 +98,8 @@ namespace PollardsRho
                 return null;
 
             var y = -p.Y % _fieldOrder;
-            y = y < 0 ? 
-                y + _fieldOrder : 
+            y = y < 0 ?
+                y + _fieldOrder :
                 y;
 
             var negPoint = new Point(p.X, y);
@@ -104,19 +109,6 @@ namespace PollardsRho
 
             return negPoint;
         }
-
-        //private BigInteger ModInverse(BigInteger value, BigInteger modulo)
-        //{
-        //    BigInteger x, y;
-
-        //    if (1 != EGCD(value, modulo, out x, out y))
-        //        throw new ArgumentException("Invalid modulo", "modulo");
-
-        //    if (x < 0)
-        //        x += modulo;
-
-        //    return x % modulo;
-        //}
 
         public bool IsOnCurve(Point p)
         {
@@ -162,37 +154,5 @@ namespace PollardsRho
         {
             return BigInteger.ModPow(a, n, _fieldOrder);
         }
-
-        //private BigInteger EGCD(BigInteger left,
-        //                      BigInteger right,
-        //                  out BigInteger leftFactor,
-        //                  out BigInteger rightFactor)
-        //{
-        //    leftFactor = 0;
-        //    rightFactor = 1;
-        //    BigInteger u = 1;
-        //    BigInteger v = 0;
-        //    BigInteger gcd = 0;
-
-        //    while (left != 0)
-        //    {
-        //        BigInteger q = right / left;
-        //        BigInteger r = right % left;
-
-        //        BigInteger m = leftFactor - u * q;
-        //        BigInteger n = rightFactor - v * q;
-
-        //        right = left;
-        //        left = r;
-        //        leftFactor = u;
-        //        rightFactor = v;
-        //        u = m;
-        //        v = n;
-
-        //        gcd = right;
-        //    }
-
-        //    return gcd;
-        //}
     }
 }
