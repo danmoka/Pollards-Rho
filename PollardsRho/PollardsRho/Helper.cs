@@ -1,17 +1,16 @@
-﻿using System.Numerics;
-
+﻿
 namespace PollardsRho
 {
     public static class Helper
     {
-        public static BigInteger ModInverse(BigInteger value, BigInteger modulo)
+        public static int ModInverse(int value, int modulo)
         {
             if (modulo == 1)
                 return 0;
 
             var m0 = modulo;
-            BigInteger x = 1;
-            BigInteger y = 0;
+            int x = 1;
+            int y = 0;
 
             if (value < 0)
                 return modulo - ModInverse(-value, modulo);

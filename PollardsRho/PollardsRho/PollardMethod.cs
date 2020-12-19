@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace PollardsRho
 {
@@ -10,10 +9,10 @@ namespace PollardsRho
 
         private Point _point1;
         private Point _point2;
-        private BigInteger _a1;
-        private BigInteger _a2;
-        private BigInteger _b1;
-        private BigInteger _b2;
+        private int _a1;
+        private int _a2;
+        private int _b1;
+        private int _b2;
         private Point _x1;
         private Point _x2;
         private EllipticCurve _curve;
@@ -23,7 +22,7 @@ namespace PollardsRho
             _random = new Random();
         }
 
-        public BigInteger Log(Point p, Point q, EllipticCurve curve)
+        public int Log(Point p, Point q, EllipticCurve curve)
         {
             InitValues(p, q, curve);
 
@@ -58,12 +57,12 @@ namespace PollardsRho
             return 0;
         }
 
-        private (Point, BigInteger, BigInteger) Iter((Point x, BigInteger a, BigInteger b) tuple)
+        private (Point, int, int) Iter((Point x, int a, int b) tuple)
         {
             var partitionSize = _curve.FieldOrder / 3 + 1;
             var newTuple = (tuple.x, tuple.a, tuple.b);
 
-            BigInteger i;
+            int i;
 
             if (tuple.x is null)
                 i = 0;

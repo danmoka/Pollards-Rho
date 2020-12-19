@@ -1,20 +1,19 @@
 ﻿using System;
-using System.Numerics;
 
 namespace PollardsRho
 {
     public class EllipticCurve
     {
-        private readonly BigInteger _a;
-        private readonly BigInteger _b;
-        private readonly BigInteger _fieldOrder;
-        private readonly BigInteger _subgroupOrder;
+        private readonly int _a;
+        private readonly int _b;
+        private readonly int _fieldOrder;
+        private readonly int _subgroupOrder;
 
         public EllipticCurve(
-            BigInteger a,
-            BigInteger b,
-            BigInteger fieldOrder,
-            BigInteger subgroupOrder,
+            int a,
+            int b,
+            int fieldOrder,
+            int subgroupOrder,
             Point basePoint)
         {
             _a = a;
@@ -26,7 +25,7 @@ namespace PollardsRho
             FieldOrder = fieldOrder;
             SubgroupOrder = subgroupOrder;
 
-            if (BigInteger.ModPow(2, _fieldOrder - 1, _fieldOrder) != 1)
+            if (ModPow(2, _fieldOrder - 1) != 1)
                 throw new InvalidOperationException($"Incorrect field order {_fieldOrder}!");
 
             if (CurveDiscriminant() == 0)
@@ -40,8 +39,8 @@ namespace PollardsRho
         }
 
         public Point BasePoint { get; private set; }
-        public BigInteger FieldOrder { get; private set; }
-        public BigInteger SubgroupOrder { get; private set; }
+        public int FieldOrder { get; private set; }
+        public int SubgroupOrder { get; private set; }
 
         public Point Add(Point p1, Point p2)
         {
@@ -61,19 +60,16 @@ namespace PollardsRho
             if (p1.X == p2.X && p1.Y != p2.Y)
                 return null;
 
-            BigInteger s;
+            int s;
 
             if (p1.X == p2.X)
-                s = (3 * ModPow(p1.X, 2) + _a) * Helper.ModInverse(2 * p1.Y, _fieldOrder) % _fieldOrder;
+                s = Mod((3 * ModPow(p1.X, 2) + _a) * Helper.ModInverse(2 * p1.Y, _fieldOrder));
             else
-                s = (p1.Y - p2.Y) * Helper.ModInverse(p1.X - p2.X, _fieldOrder) % _fieldOrder;
+                s = Mod((p1.Y - p2.Y) * Helper.ModInverse(p1.X - p2.X, _fieldOrder));
 
-            var x = (ModPow(s, 2) - p1.X - p2.X) % _fieldOrder;
+            var x = Mod(ModPow(s, 2) - p1.X - p2.X);
 
-            if (x < 0)
-                x += _fieldOrder;
-
-            var y = (p1.Y + s * (x - p1.X)) % _fieldOrder;
+            var y = Mod(p1.Y + s * (x - p1.X));
 
             y = -y < 0 ?
                 -y + _fieldOrder :
@@ -97,11 +93,7 @@ namespace PollardsRho
             if (p == null)
                 return null;
 
-            var y = -p.Y % _fieldOrder;
-            y = y < 0 ?
-                y + _fieldOrder :
-                y;
-
+            var y = Mod(-p.Y % _fieldOrder);
             var negPoint = new Point(p.X, y);
 
             if (!IsOnCurve(negPoint))
@@ -115,10 +107,10 @@ namespace PollardsRho
             if (p == null)
                 return true;
 
-            return (ModPow(p.Y, 2) - ModPow(p.X, 3) - _a * p.X - _b) % _fieldOrder == 0;
+            return Mod(ModPow(p.Y, 2) - ModPow(p.X, 3) - _a * p.X - _b) == 0;
         }
 
-        public Point Multiply(BigInteger n, Point p)
+        public Point Multiply(int n, Point p)
         {
             if (n % _subgroupOrder == 0 || p == null)
                 return null;
@@ -145,14 +137,29 @@ namespace PollardsRho
             return multiplyPoint;
         }
 
-        private BigInteger CurveDiscriminant()
+        private int CurveDiscriminant()
         {
-            return -16 * (4 * ModPow(_a, 3) + 27 * ModPow(_b, 2)) % _fieldOrder;
+            return Mod(-16 * (4 * ModPow(_a, 3) + 27 * ModPow(_b, 2)));
         }
 
-        private BigInteger ModPow(BigInteger a, BigInteger n)
+        private int ModPow(int a, int n)
         {
-            return BigInteger.ModPow(a, n, _fieldOrder);
+            var result = Math.Pow(a, n) % _fieldOrder;
+            result = result < 0
+                ? result + _fieldOrder
+                : result;
+
+            return (int) result;
+        }
+
+        private int Mod(int a)
+        {
+            var result = a % _fieldOrder;
+            result = result < 0
+                ? result + _fieldOrder
+                : result;
+
+            return result;
         }
     }
 }

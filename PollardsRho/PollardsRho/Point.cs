@@ -4,10 +4,10 @@ namespace PollardsRho
 {
     public class Point
     {
-        public BigInteger X { get; private set; }
-        public BigInteger Y { get; private set; }
+        public int X { get; private set; }
+        public int Y { get; private set; }
 
-        public Point(BigInteger x, BigInteger y)
+        public Point(int x, int y)
         {
             X = x;
             Y = y;
@@ -20,10 +20,8 @@ namespace PollardsRho
 
         public override bool Equals(object obj)
         {
-            if (obj is Point)
+            if (obj is Point point)
             {
-                var point = (Point)obj;
-
                 return X == point.X && Y == point.Y;
             }
 
