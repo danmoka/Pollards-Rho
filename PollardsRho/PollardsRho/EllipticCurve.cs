@@ -59,9 +59,9 @@ namespace PollardsRho
             BigInteger s;
 
             if (p1.X == p2.X)
-                s = ((3 * ModPow(p1.X, 2) + _a) * ModInverse(2 * p1.Y, _fieldOrder)) % _fieldOrder;
+                s = ((3 * ModPow(p1.X, 2) + _a) * Helper.ModInverse(2 * p1.Y, _fieldOrder)) % _fieldOrder;
             else
-                s = ((p1.Y - p2.Y) * ModInverse(p1.X - p2.X, _fieldOrder)) % _fieldOrder;
+                s = ((p1.Y - p2.Y) * Helper.ModInverse(p1.X - p2.X, _fieldOrder)) % _fieldOrder;
 
             var x = (ModPow(s, 2) - p1.X - p2.X) % _fieldOrder;
 
@@ -103,28 +103,6 @@ namespace PollardsRho
                 throw new InvalidOperationException($"Point {negPoint} is not on curve!");
 
             return negPoint;
-        }
-
-        public BigInteger ModInverse(BigInteger value, BigInteger modulo)
-        {
-            if (modulo == 1) 
-                return 0;
-
-            var m0 = modulo;
-            BigInteger x = 1;
-            BigInteger y = 0;
-
-            if (value < 0) 
-                return modulo - ModInverse(-value, modulo);
-
-            while (value > 1)
-            {
-                var q = value / modulo;
-                (value, modulo) = (modulo, value % modulo);
-                (x, y) = (y, x - q * y);
-            }
-
-            return x < 0 ? x + m0 : x;
         }
 
         //private BigInteger ModInverse(BigInteger value, BigInteger modulo)
