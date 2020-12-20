@@ -4,18 +4,18 @@ using PollardsRho;
 namespace Tests
 {
     [TestClass]
-    public class ECCTest
+    public class EllipticCurveTests
     {
         private readonly EllipticCurve _ecc = new EllipticCurve(3, 9, 73, 83, new Point(31, 6));
 
         [TestMethod]
-        public void IOnCurveTest()
+        public void IsOnCurveTest()
         {
             Assert.IsTrue(_ecc.IsOnCurve(new Point(24, 53)));
         }
 
         [TestMethod]
-        public void INotOnCurveTest()
+        public void IsNotOnCurveTest()
         {
             Assert.IsFalse(_ecc.IsOnCurve(new Point(0, 4)));
         }

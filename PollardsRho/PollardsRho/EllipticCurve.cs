@@ -21,6 +21,8 @@ namespace PollardsRho
             _fieldOrder = fieldOrder;
             _subgroupOrder = subgroupOrder;
 
+            A = a;
+            B = b;
             BasePoint = basePoint;
             FieldOrder = fieldOrder;
             SubgroupOrder = subgroupOrder;
@@ -38,6 +40,8 @@ namespace PollardsRho
                 throw new InvalidOperationException($"Incorrect {_subgroupOrder} or {BasePoint}!");
         }
 
+        public int A { get; private set; }
+        public int B { get; private set; }
         public Point BasePoint { get; private set; }
         public int FieldOrder { get; private set; }
         public int SubgroupOrder { get; private set; }

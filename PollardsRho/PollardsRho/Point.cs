@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace PollardsRho
+﻿namespace PollardsRho
 {
     public class Point
     {

@@ -1,5 +1,4 @@
-﻿
-namespace PollardsRho
+﻿namespace PollardsRho
 {
     public static class Helper
     {
@@ -9,8 +8,8 @@ namespace PollardsRho
                 return 0;
 
             var m0 = modulo;
-            int x = 1;
-            int y = 0;
+            var x = 1;
+            var y = 0;
 
             if (value < 0)
                 return modulo - ModInverse(-value, modulo);
@@ -22,7 +21,16 @@ namespace PollardsRho
                 (x, y) = (y, x - q * y);
             }
 
-            return x < 0 ? x + m0 : x;
+            return x < 0 
+                ? x + m0 
+                : x;
+        }
+
+        public static int GetValueByModulo(int value, int modulo)
+        {
+            return value >= 0
+                ? value
+                : value + modulo;
         }
     }
 }

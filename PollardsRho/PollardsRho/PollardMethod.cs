@@ -6,114 +6,132 @@ namespace PollardsRho
     public class PollardMethod
     {
         private readonly Random _random;
+        private readonly Stack<(Point, int, int)> _tortoise;
+        private readonly Stack<(Point, int, int)> _hare;
 
-        private Point _point1;
-        private Point _point2;
+        private EllipticCurve _curve;
+        private Point _x1;
+        private Point _x2;
         private int _a1;
         private int _a2;
         private int _b1;
         private int _b2;
-        private Point _x1;
-        private Point _x2;
-        private EllipticCurve _curve;
 
         public PollardMethod()
         {
             _random = new Random();
+            _tortoise = new Stack<(Point, int, int)>();
+            _hare = new Stack<(Point, int, int)>();
         }
 
-        public int Log(Point p, Point q, EllipticCurve curve)
+        private Point X1 => _tortoise.Peek().Item1;
+        private int A1 => _tortoise.Peek().Item2;
+        private int B1 => _tortoise.Peek().Item3;
+        private Point X2 => _hare.Peek().Item1;
+        private int A2 => _hare.Peek().Item2;
+        private int B2 => _hare.Peek().Item3;
+
+        public int GetLogarithm(Point p, Point q, EllipticCurve curve)
         {
-            InitValues(p, q, curve);
+            InitValues(q, p, curve);
 
             if (!_curve.IsOnCurve(p) && !_curve.IsOnCurve(q))
                 throw new Exception($"Points {p} or {q} are not on curve!");
 
-            for (int i = 0; i < 3; i++)
+            try
             {
-                var tortoise = ((Point)null, 0, 0);
-                var hare = ((Point)null, 0, 0);
+                return GetLogarithm();
+            }
+            catch
+            {
+                return GetLogarithm(p, q, curve);
+            }
+        }
 
-                for (int j = 0; j < _curve.SubgroupOrder; j++)
+        private int GetLogarithm()
+        {
+            for (int i = 0; i < _curve.SubgroupOrder; i++)
+            {
+                Next(_tortoise);
+
+                Next(_hare);
+                Next(_hare);
+
+                if (X1 == X2 && X1 != null && X2 != null)
                 {
-                    var tup1 = Iter(tortoise);
+                    if (B1 == B2)
+                        break;
 
-                    var tup2 = Iter(hare);
-                    tup2 = Iter(tup2);
+                    var x = (A1 - A2) * Helper.ModInverse(B2 - B1, _curve.SubgroupOrder);
+                    var logarithm = x % _curve.SubgroupOrder;
 
-                    if (tup1.Item1 == tup2.Item1)
-                    {
-                        if (tup1.Item3 == tup2.Item3)
-                            break;
+                    logarithm = Helper.GetValueByModulo(logarithm, _curve.SubgroupOrder);
+                    ConsoleWorker.PrintAnswer(_tortoise, _hare, logarithm, _curve.SubgroupOrder);
 
-                        var x = (tup1.Item2 - tup2.Item2) * Helper.ModInverse(tup2.Item3 - tup1.Item3, _curve.SubgroupOrder);
-                        var logarithm = x % _curve.SubgroupOrder;
-
-                        return logarithm;
-                    }
+                    return logarithm;
                 }
             }
 
-            return 0;
+            throw new Exception("Логарифм не найден!");
         }
 
-        private (Point, int, int) Iter((Point x, int a, int b) tuple)
+        private void Next(Stack<(Point, int, int)> current)
         {
+            var x = current.Peek().Item1;
+            var a = current.Peek().Item2;
+            var b = current.Peek().Item3;
+
             var partitionSize = _curve.FieldOrder / 3 + 1;
-            var newTuple = (tuple.x, tuple.a, tuple.b);
-
-            int i;
-
-            if (tuple.x is null)
-                i = 0;
-            else
-                i = newTuple.x.X / partitionSize;
+            var i = x is null ? 0 : x.X / partitionSize;
 
             if (i == 0)
             {
-                newTuple.a += _a1;
-                newTuple.b += _b1;
-                newTuple.x = _curve.Add(newTuple.x, _x1);
+                a += _a1;
+                b += _b1;
+                x = _curve.Add(x, _x1);
             }
             else if (i == 1)
             {
-                newTuple.a *= 2;
-                newTuple.b *= 2;
-                newTuple.x = _curve.DoubleUp(newTuple.x);
+                a *= 2;
+                b *= 2;
+                x = _curve.DoubleUp(x);
             }
             else if (i == 2)
             {
-                newTuple.a += _a2;
-                newTuple.b += _b2;
-                newTuple.x = _curve.Add(newTuple.x, _x2);
+                a += _a2;
+                b += _b2;
+                x = _curve.Add(x, _x2);
             }
             else
                 throw new Exception(i.ToString());
 
-            newTuple.a %= _curve.SubgroupOrder;
-            newTuple.b %= _curve.SubgroupOrder;
+            a %= _curve.SubgroupOrder;
+            b %= _curve.SubgroupOrder;
 
-            return newTuple;
+            current.Push((x, a, b));
         }
 
         private void InitValues(Point p, Point q, EllipticCurve curve)
         {
             _curve = curve;
 
-            _point1 = p;
-            _point2 = q;
+            _tortoise.Clear();
+            _hare.Clear();
 
-            _a1 = _random.Next(1, (int)curve.SubgroupOrder);
-            _b1 = _random.Next(1, (int)curve.SubgroupOrder);
+            _tortoise.Push(((Point)null, 0, 0));
+            _hare.Push(((Point)null, 0, 0));
+
+            _a1 = _random.Next(1, curve.SubgroupOrder);
+            _b1 = _random.Next(1, curve.SubgroupOrder);
             _x1 = _curve.Add(
-                _curve.Multiply(_a1, _point1),
-                _curve.Multiply(_b1, _point2));
+                _curve.Multiply(_a1, p),
+                _curve.Multiply(_b1, q));
 
-            _a2 = _random.Next(1, (int)curve.SubgroupOrder);
-            _b2 = _random.Next(1, (int)curve.SubgroupOrder);
+            _a2 = _random.Next(1, curve.SubgroupOrder);
+            _b2 = _random.Next(1, curve.SubgroupOrder);
             _x2 = _curve.Add(
-                _curve.Multiply(_a2, _point1),
-                _curve.Multiply(_b2, _point2));
+                _curve.Multiply(_a2, p),
+                _curve.Multiply(_b2, q));
         }
     }
 }
